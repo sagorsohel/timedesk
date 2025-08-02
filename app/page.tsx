@@ -20,7 +20,7 @@ import { Footer } from "@/components/footer"
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
+    
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-20 pb-16 sm:pt-24 sm:pb-20">
@@ -324,7 +324,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <Footer />
+    
     </div>
   )
 }

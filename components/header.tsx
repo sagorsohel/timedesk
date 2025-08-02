@@ -4,8 +4,13 @@ import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Clock } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export function Header() {
+  const router =useRouter()
+  const handleLogin=()=>{
+    router.push("/login")
+  }
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,7 +42,7 @@ export function Header() {
             <Button variant="ghost" className="hidden sm:inline-flex">
               Sign In
             </Button>
-            <Button>Get Started</Button>
+            <Button onClick={handleLogin}>Get Started</Button>
           </div>
         </div>
       </div>
