@@ -107,8 +107,13 @@ export default function Login03() {
             <div className="grid gap-4">
               <Label htmlFor="email">Email address</Label>
               <Input id="email" type="email" placeholder="johndoe@mail.com" />
+              
+            </div>
+            <div className="grid gap-4">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" placeholder="johndoe@mail.com" />
               <Button type="submit" className="w-full">
-                Sign In with Email
+                Sign In 
               </Button>
             </div>
           </form>
