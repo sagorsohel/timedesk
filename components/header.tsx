@@ -17,15 +17,30 @@ import {
 
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useClerk } from "@clerk/nextjs";
+
+
+
 export function Header() {
   const { user, isSignedIn, isLoaded } = useCurrentUser(); // Always here
-
+  const { signOut } = useClerk();
   if (!isLoaded) return null;
-  console.log(user?.imageUrl, isSignedIn)
+  
+
+  // handle login navigation
   const router = useRouter()
   const handleLogin = () => {
     router.push("/sign-in")
   }
+  
+  // handle log out
+
+  
+
+  const handleLogOut = () => {
+    signOut();
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,9 +69,11 @@ export function Header() {
 
           <div className="flex items-center space-x-4">
             <ModeToggle />
-            <Button variant="ghost" className="hidden sm:inline-flex">
+            {
+              !isSignedIn && <Button variant="ghost" className="hidden sm:inline-flex">
               Sign In
             </Button>
+            }
             {isSignedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -72,15 +89,14 @@ export function Header() {
 
                   <DropdownMenuGroup>
                     <Link href="/admin/dashboard"><DropdownMenuItem>Dashboard</DropdownMenuItem></Link>
-                    <DropdownMenuItem>Settings</DropdownMenuItem>
-                    <DropdownMenuItem>Billing</DropdownMenuItem>
-                    <DropdownMenuItem>FAQs</DropdownMenuItem>
+                    <DropdownMenuItem>Profile</DropdownMenuItem>
+                    
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
 
                   <DropdownMenuGroup>
-                    <DropdownMenuItem>Call Support</DropdownMenuItem>
-                    <DropdownMenuItem>Chat with us</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogOut}>Log out</DropdownMenuItem>
+                   
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
