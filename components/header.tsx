@@ -6,14 +6,24 @@ import { Clock } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCurrentUser } from "@/lib/useCurrentUser"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
 
-export  function Header() {
+  DropdownMenuSeparator,
+
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+export function Header() {
   const { user, isSignedIn, isLoaded } = useCurrentUser(); // Always here
 
   if (!isLoaded) return null;
-  console.log(user)
-  const router =useRouter()
-  const handleLogin=()=>{
+  console.log(user?.imageUrl, isSignedIn)
+  const router = useRouter()
+  const handleLogin = () => {
     router.push("/sign-in")
   }
   return (
@@ -47,7 +57,38 @@ export  function Header() {
             <Button variant="ghost" className="hidden sm:inline-flex">
               Sign In
             </Button>
-            <Button onClick={handleLogin}>Get Started</Button>
+            {isSignedIn ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar>
+                    <AvatarImage src={user?.imageUrl} />
+                    <AvatarFallback>{user?.firstName?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align='start'
+                  className='data-[state=closed]:slide-out-to-left-20 data-[state=open]:slide-in-from-left-20 top-3 data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100 w-56 duration-400'
+                >
+
+                  <DropdownMenuGroup>
+                    <Link href="/admin/dashboard"><DropdownMenuItem>Dashboard</DropdownMenuItem></Link>
+                    <DropdownMenuItem>Settings</DropdownMenuItem>
+                    <DropdownMenuItem>Billing</DropdownMenuItem>
+                    <DropdownMenuItem>FAQs</DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem>Call Support</DropdownMenuItem>
+                    <DropdownMenuItem>Chat with us</DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+
+            ) : (
+              <Button onClick={handleLogin}>Get Started</Button>
+            )}
           </div>
         </div>
       </div>
