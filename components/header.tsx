@@ -5,11 +5,16 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { Clock } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useCurrentUser } from "@/lib/useCurrentUser"
 
-export function Header() {
+export  function Header() {
+  const { user, isSignedIn, isLoaded } = useCurrentUser(); // Always here
+
+  if (!isLoaded) return null;
+  console.log(user)
   const router =useRouter()
   const handleLogin=()=>{
-    router.push("/login")
+    router.push("/sign-in")
   }
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
