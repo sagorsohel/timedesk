@@ -84,7 +84,7 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align='start'
-                  className='data-[state=closed]:slide-out-to-left-20 data-[state=open]:slide-in-from-left-20 top-3 data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100 w-56 duration-400'
+                  className='data-[state=closed]:slide-out-to-left-20 data-[state=open]:slide-in-from-left-20 top-3 data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100 w-40 mr-4 mt-3 duration-400'
                 >
 
                   <DropdownMenuGroup>
