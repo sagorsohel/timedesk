@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
-import si from "systeminformation"
 
 export async function GET() {
+  // Dynamically import to avoid build-time resolution
+  const si = (await import("systeminformation")).default
+
   const cpu = await si.cpu()
   const currentLoad = await si.currentLoad()
   const mem = await si.mem()
