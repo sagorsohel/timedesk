@@ -6,15 +6,16 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useActionState } from "react"
 import { Loader2 } from "lucide-react"
+import { loginAction } from "@/actions/loginAction"
 
 export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLFormElement>) {
-  const handleSubmit = async (prevState: any, formData: FormData) => {
-    const email = formData.get('email')
-    const password = formData.get('password')
-    console.log(email, password)
-  }
 
-  const [data, action, isPending] = useActionState(handleSubmit, undefined)
+
+  const [state, action, isPending] = useActionState(loginAction, undefined);
+
+  if (state?.token) {
+    localStorage.setItem("token", state.token); // ✅ Runs in browser
+  }
 
 
   return (
@@ -37,7 +38,12 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLForm
           </div>
           <Input name="password" id="password" type="password" required />
         </div>
-        
+
+        {state?.message && (
+          <p className={`text-sm ${state.success ? "text-green-500" : "text-red-500"}`}>
+            {state.message}
+          </p>
+        )}
         <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign In"}
         </Button>
