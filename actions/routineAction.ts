@@ -24,3 +24,28 @@ export async function getUserRoutines(token: string) {
     };
   }
 }
+
+export async function updateRoutineTimer(
+  token: string,
+  routineUpdate: {
+    _id: string;
+    remainingSeconds: number;
+
+    isFinished: boolean;
+  }
+) {
+  try {
+    const { data } = await api.patch("/routines/update-timer", routineUpdate, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return { success: true, routine: data.data };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to update routine",
+    };
+  }
+}
