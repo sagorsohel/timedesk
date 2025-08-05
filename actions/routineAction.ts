@@ -49,3 +49,26 @@ export async function updateRoutineTimer(
     };
   }
 }
+export async function createUserRoutine(
+    token: string,
+    routine: {
+      name: string;
+      durationSeconds: number;
+    }
+  ) {
+    try {
+      const { data } = await api.post("/routines/create", routine, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      return { success: true, routine: data.data };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to create routine",
+      };
+    }
+  }
+  

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getUserRoutines, updateRoutineTimer } from "@/actions/routineAction"; // Adjust your import paths
+import { createUserRoutine, getUserRoutines, updateRoutineTimer } from "@/actions/routineAction"; // Adjust your import paths
 import { formatToHrsMins, parseDurationToSeconds } from "@/utils/timeCoverter";
 
 interface RoutineTimer {
@@ -25,12 +25,17 @@ export default function RoutineManager() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
+  const [durationAsMin, setDurationAsMin] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editDuration, setEditDuration] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
 
+
+
   const intervalRefs = useRef<Map<number, NodeJS.Timeout>>(new Map());
+  const token = localStorage.getItem('token')
+
 
   useEffect(() => {
     async function fetchRoutines() {
@@ -99,7 +104,7 @@ export default function RoutineManager() {
     }
   }
 
-  const addRoutine = () => {
+  const addRoutine = async () => {
     if (!name.trim() || !duration.trim()) {
       alert("Please enter both name and duration");
       return;
@@ -109,18 +114,36 @@ export default function RoutineManager() {
       alert("Invalid duration");
       return;
     }
+
+
+
+    const secDuration = parseDurationToSeconds(duration)
+    const minDuration = parseDurationToSeconds(durationAsMin)
+    const totalDuration = (secDuration * 3600) + (minDuration * 60)
+
+    try {
+      const data = await createUserRoutine(token as string, {
+        name: name.trim(),
+        durationSeconds: totalDuration
+      })
+      console.log(data)
+    } catch (error) {
+      console.log(error)
+    }
+
     const newRoutine: RoutineTimer = {
       id: Date.now(),
       name: name.trim(),
       duration: duration.trim(),
-      originalDurationSeconds: seconds,
-      remainingSeconds: seconds,
+      originalDurationSeconds: totalDuration,
+      remainingSeconds: totalDuration,
       isRunning: false,
       isFinished: false,
     };
     setRoutines((prev) => [...prev, newRoutine]);
     setName("");
     setDuration("");
+    setDurationAsMin("");
     setShowAddForm(false);
   };
 
@@ -154,7 +177,7 @@ export default function RoutineManager() {
     intervalRefs.current.set(id, interval);
   };
 
-  
+
   const stopTimer = async (id: number) => {
     const iv = intervalRefs.current.get(id);
     console.log(iv)
@@ -254,7 +277,7 @@ export default function RoutineManager() {
       )}
       {showAddForm && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-          <div className="col-span-2">
+          <div className="">
             <Label htmlFor="name" className="block mb-1 font-medium">
               Name
             </Label>
@@ -269,14 +292,28 @@ export default function RoutineManager() {
           </div>
           <div>
             <Label htmlFor="duration" className="block mb-1 font-medium">
-              Duration
+              Hours
             </Label>
             <Input
               id="duration"
               type="text"
-              placeholder="e.g., 1h 30m, 90 mins"
+              placeholder="e.g., 1"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
+              disabled={editId !== null}
+            />
+
+          </div>
+          <div>
+            <Label htmlFor="durationAsMin" className="block mb-1 font-medium">
+              Minutes
+            </Label>
+            <Input
+              id="durationAsMin"
+              type="text"
+              placeholder="e.g., 30"
+              value={durationAsMin}
+              onChange={(e) => setDurationAsMin(e.target.value)}
               disabled={editId !== null}
             />
           </div>
@@ -358,7 +395,7 @@ export default function RoutineManager() {
                         size="sm"
                         variant="destructive"
                         onClick={() => deleteRoutine(routine.id)}
-                        disabled={routine.isRunning}
+                        disabled={!canEdit}
                         title={routine.isRunning ? "Stop timer before deleting" : undefined}
                       >
                         Delete
