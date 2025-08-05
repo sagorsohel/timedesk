@@ -9,7 +9,7 @@ export async function loginAction(_prevState: any, formData: FormData) {
 
   try {
     const { data } = await api.post("/user/login", { email, password });
-    console.log(data)
+    
 
     return { success: true, message: data?.message, token: data?.data?.token, user: data?.data?.userData };
   } catch (error: any) {

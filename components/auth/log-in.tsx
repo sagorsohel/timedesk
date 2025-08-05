@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
 import { Loader2 } from "lucide-react"
 import { loginAction } from "@/actions/loginAction"
+import { useRouter } from "next/navigation"
 
 export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLFormElement>) {
-
+  const router = useRouter()
 
   const [state, action, isPending] = useActionState(loginAction, undefined);
 
@@ -20,7 +21,13 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLForm
 
   console.log(state?.user)
 
- 
+  useEffect(() => {
+    if (state?.success) {
+      router.push("/admin/dashboard");
+    }
+  }, [state?.success]);
+
+
 
   return (
     <form action={action} className={cn("flex flex-col gap-6", className)} {...props}>
@@ -45,7 +52,9 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLForm
 
         {state?.message && (
           <p className={`text-sm ${state.success ? "text-green-500" : "text-red-500"}`}>
-            {state.message}
+            {state.message} {
+              state?.success && 'Navigating Dashboard...'
+            }
           </p>
         )}
         <Button type="submit" className="w-full" disabled={isPending}>

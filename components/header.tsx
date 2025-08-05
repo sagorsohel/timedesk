@@ -25,7 +25,7 @@ import { useAuth } from "@/lib/auth"
 export function Header() {
   const router = useRouter()
 
-  const { isSignedIn, user } = useAuth();
+  const { isSignedIn, user,logout } = useAuth();
 
   // handle login navigation
 
@@ -41,7 +41,7 @@ export function Header() {
 
 
   const handleLogOut = () => {
-
+    logout()
   }
 
   return (

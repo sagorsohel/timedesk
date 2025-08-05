@@ -1,11 +1,12 @@
-// lib/auth.ts or utils/useAuth.ts
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 export function useAuth() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -24,5 +25,13 @@ export function useAuth() {
     setLoading(false);
   }, []);
 
-  return { isSignedIn, user, loading };
+  const logout = useCallback(() => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsSignedIn(false);
+    setUser(null);
+    router.push("/");  // Navigate to home page after logout
+  }, [router]);
+
+  return { isSignedIn, user, loading, logout };
 }
