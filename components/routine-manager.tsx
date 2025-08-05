@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createUserRoutine, getUserRoutines, updateRoutineTimer } from "@/actions/routineAction"; // Adjust your import paths
 import { formatToHrsMins, parseDurationToSeconds } from "@/utils/timeCoverter";
+import { toast } from "sonner";
 
 interface RoutineTimer {
   id: number;          // numeric client id
@@ -126,9 +127,12 @@ export default function RoutineManager() {
         name: name.trim(),
         durationSeconds: totalDuration
       })
-      console.log(data)
+
+
+      toast.success('Routine has been created')
     } catch (error) {
       console.log(error)
+      toast.error('Failed to create routine')
     }
 
     const newRoutine: RoutineTimer = {
