@@ -4,21 +4,82 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createUserRoutine, getUserRoutines, updateRoutineTimer } from "@/actions/routineAction"; // Adjust your import paths
-import { formatToHrsMins, parseDurationToSeconds } from "@/utils/timeCoverter";
+import {
+  createUserRoutine,
+  getUserRoutines,
+  updateRoutineTimer,
+} from "@/actions/routineAction";
 import { toast } from "sonner";
+import { SummaryCard } from "./dashboard/summary-card";
+
+
+// Parses durations like "1h 30m", "90 mins", or plain numbers to seconds
+export function parseDurationToSeconds(duration: string): number {
+  const regex =
+    /(\d+)\s*(h|hr|hrs|hour|hours|m|min|mins|minute|minutes|s|sec|secs|second|seconds)?/gi;
+  let totalSeconds = 0;
+  let match;
+
+  while ((match = regex.exec(duration)) !== null) {
+    const value = parseInt(match[1]);
+    const unit = match[2]?.toLowerCase() ?? "s";
+
+    switch (unit) {
+      case "h":
+      case "hr":
+      case "hrs":
+      case "hour":
+      case "hours":
+        totalSeconds += value * 3600;
+        break;
+      case "m":
+      case "min":
+      case "mins":
+      case "minute":
+      case "minutes":
+        totalSeconds += value * 60;
+        break;
+      case "s":
+      case "sec":
+      case "secs":
+      case "second":
+      case "seconds":
+      default:
+        totalSeconds += value;
+        break;
+    }
+  }
+
+  if (totalSeconds === 0) {
+    const onlyNum = parseInt(duration);
+    if (!isNaN(onlyNum)) totalSeconds = onlyNum * 60;
+  }
+
+  return totalSeconds;
+}
+
+// Formats seconds always including seconds (important to show countdown)
+export function formatToHrsMins(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  let result = "";
+  if (h > 0) result += `${h}h `;
+  if (m > 0 || h > 0) result += `${m}m `;
+  result += `${s}s`;
+  return result.trim();
+}
 
 interface RoutineTimer {
-  id: number;          // numeric client id
-  _id?: string;        // string API id if available
+  id: number; // numeric client id
+  _id?: string; // API string id if available
   name: string;
-  duration: string;    // e.g. "1h 30m"
+  duration: string;
   originalDurationSeconds: number;
   remainingSeconds: number;
   isRunning: boolean;
   isFinished: boolean;
 }
-
 
 
 export default function RoutineManager() {
@@ -32,11 +93,7 @@ export default function RoutineManager() {
   const [editDuration, setEditDuration] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
 
-
-
   const intervalRefs = useRef<Map<number, NodeJS.Timeout>>(new Map());
-  const token = localStorage.getItem('token')
-
 
   useEffect(() => {
     async function fetchRoutines() {
@@ -80,7 +137,6 @@ export default function RoutineManager() {
     fetchRoutines();
 
     return () => {
-      // Cleanup intervals on unmount
       intervalRefs.current.forEach(clearInterval);
       intervalRefs.current.clear();
     };
@@ -89,7 +145,7 @@ export default function RoutineManager() {
   async function callUpdateRoutineTimerAPI(routine: RoutineTimer, isFinished: boolean) {
     const token = localStorage.getItem("token");
     if (!token) {
-      console.warn("No token found for API update");
+      console.warn("No token found to update routine timer");
       return;
     }
     try {
@@ -98,47 +154,45 @@ export default function RoutineManager() {
         remainingSeconds: routine.remainingSeconds,
         isFinished,
       });
-      // Optional success log
-      // console.log(`Routine "${routine.name}" updated, finished=${isFinished}`);
     } catch (err) {
       console.error("Failed to update routine timer API", err);
     }
   }
 
   const addRoutine = async () => {
-    if (!name.trim() || !duration.trim()) {
-      alert("Please enter both name and duration");
+    if (!name.trim() || (!duration.trim() && !durationAsMin.trim())) {
+      alert("Please enter both Name and Hours/Minutes");
       return;
     }
-    const seconds = parseDurationToSeconds(duration);
-    if (seconds <= 0) {
+
+    // Parse hours and minutes:
+    const hoursInSeconds = parseInt(duration) > 0 ? parseInt(duration) * 3600 : 0;
+    const minutesInSeconds = parseInt(durationAsMin) > 0 ? parseInt(durationAsMin) * 60 : 0;
+    const totalDuration = hoursInSeconds + minutesInSeconds;
+
+    if (totalDuration <= 0) {
       alert("Invalid duration");
       return;
     }
 
-
-
-    const secDuration = parseDurationToSeconds(duration)
-    const minDuration = parseDurationToSeconds(durationAsMin)
-    const totalDuration = (secDuration * 3600) + (minDuration * 60)
-
     try {
-      const data = await createUserRoutine(token as string, {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No auth token");
+
+      await createUserRoutine(token, {
         name: name.trim(),
-        durationSeconds: totalDuration
-      })
-
-
-      toast.success('Routine has been created')
+        durationSeconds: totalDuration,
+      });
+      toast.success("Routine has been created");
     } catch (error) {
-      console.log(error)
-      toast.error('Failed to create routine')
+      console.error(error);
+      toast.error("Failed to create routine");
     }
 
     const newRoutine: RoutineTimer = {
       id: Date.now(),
       name: name.trim(),
-      duration: duration.trim(),
+      duration: `${duration}h ${durationAsMin}m`.trim(),
       originalDurationSeconds: totalDuration,
       remainingSeconds: totalDuration,
       isRunning: false,
@@ -155,9 +209,7 @@ export default function RoutineManager() {
     if (intervalRefs.current.has(id)) return;
 
     setRoutines((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, isRunning: true, isFinished: false } : r,
-      ),
+      prev.map((r) => (r.id === id ? { ...r, isRunning: true, isFinished: false } : r)),
     );
 
     const interval = setInterval(() => {
@@ -167,7 +219,12 @@ export default function RoutineManager() {
             if (r.remainingSeconds <= 1) {
               clearInterval(intervalRefs.current.get(id)!);
               intervalRefs.current.delete(id);
-              const finishedRoutine = { ...r, remainingSeconds: 0, isRunning: false, isFinished: true };
+              const finishedRoutine = {
+                ...r,
+                remainingSeconds: 0,
+                isRunning: false,
+                isFinished: true,
+              };
               callUpdateRoutineTimerAPI(finishedRoutine, true);
               return finishedRoutine;
             }
@@ -181,32 +238,28 @@ export default function RoutineManager() {
     intervalRefs.current.set(id, interval);
   };
 
-
   const stopTimer = async (id: number) => {
     const iv = intervalRefs.current.get(id);
-    console.log(iv)
+
     if (iv) {
       clearInterval(iv);
       intervalRefs.current.delete(id);
     }
 
     const routine = routines.find((r) => r.id === id);
-    console.log('routine', routine)
     if (!routine) return;
 
-    setRoutines((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, isRunning: false } : r))
-    );
+    setRoutines((prev) => prev.map((r) => (r.id === id ? { ...r, isRunning: false } : r)));
 
-    // Call server action to update backend
     try {
-      const token = localStorage.getItem("token")!;
-      const data = await updateRoutineTimer(token, {
-        _id: routine?._id?.toString() ?? routine.id.toString(),
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No auth token");
+
+      await updateRoutineTimer(token, {
+        _id: routine._id?.toString() ?? routine.id.toString(),
         remainingSeconds: routine.remainingSeconds,
         isFinished: routine.isFinished,
       });
-
     } catch (err) {
       console.error("Failed to update routine timer:", err);
     }
@@ -222,7 +275,7 @@ export default function RoutineManager() {
 
   const saveEdit = () => {
     if (!editName.trim() || !editDuration.trim()) {
-      alert("Please enter both name and duration");
+      alert("Please enter both Name and Duration");
       return;
     }
     const seconds = parseDurationToSeconds(editDuration);
@@ -271,17 +324,30 @@ export default function RoutineManager() {
   if (loading) return <div className="p-4 text-center">Loading routines...</div>;
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 border rounded-md shadow-md bg-white">
-      <h1 className="text-2xl font-semibold mb-4">Routine Manager</h1>
-
-      {!showAddForm && (
+    <div className="max-w-xl mt-10 p-6 border rounded-md shadow-md bg-white">
+      <div className="">
+        <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold mb-4">Routine Manager</h1>
+        {!showAddForm && (
         <div className="mb-6">
           <Button onClick={() => setShowAddForm(true)}>Add New Routine</Button>
         </div>
       )}
+        </div>
+
+
+        <div className="grid grid-cols-1 pb-8 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <SummaryCard label="Total Time" value={formatToHrsMins(totalSeconds)} />
+          <SummaryCard label="Remaining Time" value={formatToHrsMins(remainingSeconds)} />
+          <SummaryCard label="Done Time" value={formatToHrsMins(doneSeconds)} />
+        </div>
+      </div>
+
+     
+
       {showAddForm && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-          <div className="">
+          <div>
             <Label htmlFor="name" className="block mb-1 font-medium">
               Name
             </Label>
@@ -300,13 +366,13 @@ export default function RoutineManager() {
             </Label>
             <Input
               id="duration"
-              type="text"
+              type="number"
+              min={0}
               placeholder="e.g., 1"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               disabled={editId !== null}
             />
-
           </div>
           <div>
             <Label htmlFor="durationAsMin" className="block mb-1 font-medium">
@@ -314,7 +380,9 @@ export default function RoutineManager() {
             </Label>
             <Input
               id="durationAsMin"
-              type="text"
+              type="number"
+              min={0}
+              max={59}
               placeholder="e.g., 30"
               value={durationAsMin}
               onChange={(e) => setDurationAsMin(e.target.value)}
@@ -364,7 +432,9 @@ export default function RoutineManager() {
                 ) : (
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-grow">
                     <p className="font-semibold">{routine.name}</p>
-                    <p className="text-sm text-muted-foreground">{formatToHrsMins(routine.remainingSeconds)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatToHrsMins(routine.remainingSeconds)}
+                    </p>
                   </div>
                 )}
 
@@ -426,19 +496,6 @@ export default function RoutineManager() {
           })}
         </ul>
       )}
-
-      <div className="mt-8 border-t pt-4 text-center">
-        <h2 className="text-xl font-semibold mb-2">Summary</h2>
-        <p>
-          <strong>Total Time:</strong> {formatToHrsMins(totalSeconds)}
-        </p>
-        <p>
-          <strong>Remaining Time:</strong> {formatToHrsMins(remainingSeconds)}
-        </p>
-        <p>
-          <strong>Done Time:</strong> {formatToHrsMins(doneSeconds)}
-        </p>
-      </div>
     </div>
   );
 }
