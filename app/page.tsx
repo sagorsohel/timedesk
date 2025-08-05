@@ -53,7 +53,7 @@ export default function LandingPage() {
                 </Button>
               </div>
 
-              <div className="flex items-center gap-6 text-sm text-muted-foreground">
+              {/* <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-primary" />
                   Free 14-day trial
@@ -62,18 +62,19 @@ export default function LandingPage() {
                   <CheckCircle className="h-4 w-4 text-primary" />
                   No credit card required
                 </div>
-              </div>
+              </div> */}
             </div>
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-3xl blur-3xl" />
               <div className="relative bg-card border rounded-3xl p-8 shadow-2xl">
                 <Image
-                  src="/placeholder.svg?height=400&width=600&text=TimeDesk+Dashboard+Preview"
+                  src="/hero.png"
                   alt="TimeDesk Dashboard"
-                  width={600}
-                  height={400}
-                  className="rounded-2xl"
+                  width={1000}
+                  height={200}
+                  
+                  className="rounded-2xl object-cover"
                 />
               </div>
             </div>
