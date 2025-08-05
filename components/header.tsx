@@ -22,19 +22,23 @@ import { useClerk } from "@clerk/nextjs";
 
 
 export function Header() {
+   const router = useRouter()
   const { user, isSignedIn, isLoaded } = useCurrentUser(); // Always here
   const { signOut } = useClerk();
   if (!isLoaded) return null;
   
 
   // handle login navigation
-  const router = useRouter()
+ 
+  
   const handleLogin = () => {
-    router.push("/sign-in")
+    router.push("/sign-up")
   }
   
   // handle log out
-
+ const handleSignIn = () => {
+  router.push("/sign-in")
+ }
   
 
   const handleLogOut = () => {
@@ -70,7 +74,7 @@ export function Header() {
           <div className="flex items-center space-x-4">
             <ModeToggle />
             {
-              !isSignedIn && <Button variant="ghost" className="hidden sm:inline-flex">
+              !isSignedIn && <Button onClick={handleSignIn} variant="ghost" className="hidden sm:inline-flex">
               Sign In
             </Button>
             }
