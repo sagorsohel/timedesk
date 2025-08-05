@@ -5,7 +5,7 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { Clock } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCurrentUser } from "@/lib/useCurrentUser"
+
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import {
   DropdownMenu,
@@ -17,32 +17,31 @@ import {
 
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useClerk } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth"
+
 
 
 
 export function Header() {
-   const router = useRouter()
-  const { user, isSignedIn, isLoaded } = useCurrentUser(); // Always here
-  const { signOut } = useClerk();
-  if (!isLoaded) return null;
-  
+  const router = useRouter()
+
+  const { isSignedIn, user } = useAuth();
 
   // handle login navigation
- 
-  
+
+
   const handleLogin = () => {
     router.push("/sign-up")
   }
-  
+
   // handle log out
- const handleSignIn = () => {
-  router.push("/sign-in")
- }
-  
+  const handleSignIn = () => {
+    router.push("/sign-in")
+  }
+
 
   const handleLogOut = () => {
-    signOut();
+
   }
 
   return (
@@ -75,8 +74,8 @@ export function Header() {
             <ModeToggle />
             {
               !isSignedIn && <Button onClick={handleSignIn} variant="ghost" className="hidden sm:inline-flex">
-              Sign In
-            </Button>
+                Sign In
+              </Button>
             }
             {isSignedIn ? (
               <DropdownMenu>
@@ -94,13 +93,13 @@ export function Header() {
                   <DropdownMenuGroup>
                     <Link href="/admin/dashboard"><DropdownMenuItem>Dashboard</DropdownMenuItem></Link>
                     <DropdownMenuItem>Profile</DropdownMenuItem>
-                    
+
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
 
                   <DropdownMenuGroup>
                     <DropdownMenuItem onClick={handleLogOut}>Log out</DropdownMenuItem>
-                   
+
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>

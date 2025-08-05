@@ -15,8 +15,12 @@ export function LoginForm({ className, ...props }: React.HTMLAttributes<HTMLForm
 
   if (state?.token) {
     localStorage.setItem("token", state.token); // ✅ Runs in browser
+    localStorage.setItem("user", JSON.stringify(state.user));
   }
 
+  console.log(state?.user)
+
+ 
 
   return (
     <form action={action} className={cn("flex flex-col gap-6", className)} {...props}>
