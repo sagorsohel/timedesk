@@ -341,7 +341,7 @@ export default function RoutineManager() {
   if (loading) return <div className="p-4 text-center">Loading routines...</div>;
 
   return (
-    <div className="max-w-xl mt-10 p-6 border rounded-md shadow-md ">
+    <div className="max-w-xl p-6 border rounded-md shadow-md ">
       <div className="">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-semibold mb-4">Routine Manager</h1>

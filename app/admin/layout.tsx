@@ -32,7 +32,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <AppSidebar variant="inset" />
         <SidebarInset>
-          <SiteHeader />
+          <div className="sticky top-0 bg-background">
+          <SiteHeader  />
+          </div>
           {children}
         </SidebarInset>
       </SidebarProvider>

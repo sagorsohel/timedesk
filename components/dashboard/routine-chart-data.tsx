@@ -49,10 +49,10 @@ export default function RoutineChartPage() {
         fetchData(); // ✅ Call the async function inside useEffect
     }, []);
 
-    console.log(routineData)
+    
     return (
-        <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Routine Duration Chart</h2>
+        <div className="">
+            
             <RoutinePieChart routines={routineData} />
         </div>
     );
