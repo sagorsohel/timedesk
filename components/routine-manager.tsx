@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   createUserRoutine,
+  deleteUserRoutine,
   getUserRoutines,
   updateRoutineTimer,
 } from "@/actions/routineAction";
@@ -312,9 +313,24 @@ export default function RoutineManager() {
     setEditDuration("");
   };
 
-  const deleteRoutine = (id: number) => {
-    stopTimer(id);
-    setRoutines((prev) => prev.filter((r) => r.id !== id));
+  const deleteRoutine = async (id: string) => {
+    try {
+
+
+      const token = localStorage.getItem('token')
+      const data = await deleteUserRoutine(token as string, id)
+      console.log(data)
+      if (data?.success) {
+        setRoutines((prev) => prev.filter((r) => r._id !== id));
+        toast.success('Routine is Deleted!')
+      }
+
+    } catch (error) {
+      console.log(error)
+      toast.error("Something went wrong!")
+    }
+  
+
   };
 
   const totalSeconds = routines.reduce((acc, r) => acc + r.originalDurationSeconds, 0);
@@ -327,12 +343,12 @@ export default function RoutineManager() {
     <div className="max-w-xl mt-10 p-6 border rounded-md shadow-md ">
       <div className="">
         <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold mb-4">Routine Manager</h1>
-        {!showAddForm && (
-        <div className="mb-6">
-          <Button onClick={() => setShowAddForm(true)}>Add New Routine</Button>
-        </div>
-      )}
+          <h1 className="text-2xl font-semibold mb-4">Routine Manager</h1>
+          {!showAddForm && (
+            <div className="mb-6">
+              <Button onClick={() => setShowAddForm(true)}>Add New Routine</Button>
+            </div>
+          )}
         </div>
 
 
@@ -343,7 +359,7 @@ export default function RoutineManager() {
         </div>
       </div>
 
-     
+
 
       {showAddForm && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
@@ -468,7 +484,7 @@ export default function RoutineManager() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => deleteRoutine(routine.id)}
+                        onClick={() => deleteRoutine(routine?._id as string)}
                         disabled={!canEdit}
                         title={routine.isRunning ? "Stop timer before deleting" : undefined}
                       >
