@@ -55,8 +55,8 @@ export default function RoutineBarChart({ routines }: Props) {
                         formatter={(value: number, name: string) => [formatSeconds(value), name === 'completed' ? 'Completed' : 'Remaining']}
                     />
                     <Legend wrapperStyle={{ fontSize: 13 }} />
-                    <Bar dataKey="completed" stackId="a" radius={[8, 8, 0, 0]} name="Completed" fill="#4ade80" />
-                    <Bar dataKey="remaining" stackId="a" radius={[8, 8, 0, 0]} name="Remaining" fill="#f97316" />
+                    <Bar dataKey="completed" stackId="a" radius={[8, 8, 0, 0]} name="Completed" fill="#88d9a5" />
+                    <Bar dataKey="remaining" stackId="a" radius={[8, 8, 0, 0]} name="Remaining" fill="#f39292" />
                 </BarChart>
             </ResponsiveContainer>
         </div>

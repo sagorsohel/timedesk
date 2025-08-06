@@ -7,9 +7,12 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "./mode-toggle"
 
 export function SiteHeader() {
-  const [dateTime, setDateTime] = useState(new Date())
+  const [dateTime, setDateTime] = useState<Date | null>(null)
 
   useEffect(() => {
+    // Set initial value to avoid SSR mismatch
+    setDateTime(new Date())
+
     const interval = setInterval(() => {
       setDateTime(new Date())
     }, 1000)
@@ -17,13 +20,13 @@ export function SiteHeader() {
     return () => clearInterval(interval)
   }, [])
 
-  const time = dateTime.toLocaleTimeString("en-US", {
+  const time = dateTime?.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
   })
 
-  const date = dateTime.toLocaleDateString("en-US", {
+  const date = dateTime?.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -38,15 +41,15 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-      
 
         <div className="ml-auto flex items-center gap-4">
-          {/* 🕒 Clock + 📅 Date */}
-          <div className="text-right text-sm text-muted-foreground leading-tight">
-            <div className="text-primary font-bold">{time}</div>
-            <div className="text-xs">{date}</div>
-          </div>
-
+          {/* 🕒 Clock + 📅 Date - Only render after mount */}
+          {dateTime && (
+            <div className="text-right text-sm text-muted-foreground leading-tight">
+              <div className="text-primary font-bold">{time}</div>
+              <div className="text-xs">{date}</div>
+            </div>
+          )}
           <ModeToggle />
         </div>
       </div>
