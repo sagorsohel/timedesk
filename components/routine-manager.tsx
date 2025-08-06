@@ -150,6 +150,7 @@ export default function RoutineManager() {
       return;
     }
     try {
+      const token = localStorage.getItem("token") as string;
       await updateRoutineTimer(token, {
         _id: (routine._id ?? routine.id).toString(),
         remainingSeconds: routine.remainingSeconds,
@@ -329,7 +330,7 @@ export default function RoutineManager() {
       console.log(error)
       toast.error("Something went wrong!")
     }
-  
+
 
   };
 
