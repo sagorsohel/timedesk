@@ -69,9 +69,9 @@ export default function LandingPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-3xl blur-3xl" />
               <div className="relative bg-card border rounded-3xl p-8 shadow-2xl">
                 <Image
-                  src="/hero.png"
+                  src="/heroLight.png"
                   alt="TimeDesk Dashboard"
-                  width={1000}
+                  width={900}
                   height={200}
                   
                   className="rounded-2xl object-cover"
