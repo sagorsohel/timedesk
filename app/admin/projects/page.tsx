@@ -1,0 +1,505 @@
+"use client";
+
+import React, { useState, useMemo } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Trash2, Edit } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
+type Project = {
+  _id: string;
+  name: string;
+  description?: string;
+  tags: string[];
+  amount?: number;
+  timeTrackedSeconds: number;
+  createdAt: Date;
+};
+
+const ALL_TAGS = [
+  { label: "frontend", color: "blue" },
+  { label: "backend", color: "green" },
+  { label: "app", color: "orange" },
+];
+
+export default function ProjectsTableWithSheet() {
+  const [projects, setProjects] = useState<Project[]>([
+    {
+      _id: "1",
+      name: "Project Alpha",
+      description: "Frontend work on homepage",
+      tags: ["frontend", "app"],
+      amount: 1200,
+      timeTrackedSeconds: 5400,
+      createdAt: new Date("2025-08-01"),
+    },
+    {
+      _id: "2",
+      name: "Project Beta",
+      description: "Backend API development",
+      tags: ["backend"],
+      amount: 2500,
+      timeTrackedSeconds: 3600,
+      createdAt: new Date("2025-08-05"),
+    },
+    {
+      _id: "3",
+      name: "Project Gamma",
+      description: "Mobile app design",
+      tags: ["app"],
+      amount: 1800,
+      timeTrackedSeconds: 4200,
+      createdAt: new Date("2025-08-08"),
+    },
+    // Add more projects here for testing pagination
+  ]);
+
+  // Sheet states
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  // Form states
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+
+  // FILTER states
+  const [searchText, setSearchText] = useState("");
+  const [filterTags, setFilterTags] = useState<string[]>([]);
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
+
+  // DELETE DIALOG state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  function formatTime(seconds: number) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h}h ${m}m`;
+  }
+
+  const openNewProjectSheet = () => {
+    setEditingProject(null);
+    setName("");
+    setDescription("");
+    setAmount("");
+    setTags([]);
+    setSheetOpen(true);
+  };
+
+  const openEditProjectSheet = (project: Project) => {
+    setEditingProject(project);
+    setName(project.name);
+    setDescription(project.description || "");
+    setAmount(project.amount?.toString() || "");
+    setTags(project.tags);
+    setSheetOpen(true);
+  };
+
+  const saveProject = () => {
+    if (!name.trim()) {
+      alert("Project name is required");
+      return;
+    }
+
+    if (editingProject) {
+      setProjects((prev) =>
+        prev.map((p) =>
+          p._id === editingProject._id
+            ? {
+                ...p,
+                name,
+                description,
+                amount: amount ? Number(amount) : 0,
+                tags,
+              }
+            : p
+        )
+      );
+    } else {
+      const newProject: Project = {
+        _id: Date.now().toString(),
+        name,
+        description,
+        amount: amount ? Number(amount) : 0,
+        tags,
+        timeTrackedSeconds: 0,
+        createdAt: new Date(),
+      };
+      setProjects((prev) => [newProject, ...prev]);
+    }
+
+    setSheetOpen(false);
+  };
+
+  const confirmDeleteProject = (project: Project) => {
+    setProjectToDelete(project);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirmed = () => {
+    if (projectToDelete) {
+      setProjects((prev) =>
+        prev.filter((p) => p._id !== projectToDelete._id)
+      );
+      setProjectToDelete(null);
+    }
+    setDeleteDialogOpen(false);
+  };
+
+  const toggleTag = (tag: string) => {
+    if (tags.includes(tag)) {
+      setTags(tags.filter((t) => t !== tag));
+    } else {
+      setTags([...tags, tag]);
+    }
+  };
+
+  const toggleFilterTag = (tag: string) => {
+    if (filterTags.includes(tag)) {
+      setFilterTags(filterTags.filter((t) => t !== tag));
+    } else {
+      setFilterTags([...filterTags, tag]);
+    }
+  };
+
+  const filteredProjects = useMemo(() => {
+    return projects.filter((project) => {
+      const search = searchText.trim().toLowerCase();
+      if (
+        search &&
+        !(
+          project.name.toLowerCase().includes(search) ||
+          project.description?.toLowerCase().includes(search)
+        )
+      ) {
+        return false;
+      }
+
+      if (filterTags.length > 0) {
+        if (!project.tags.some((tag) => filterTags.includes(tag))) return false;
+      }
+
+      if (filterStartDate) {
+        const start = new Date(filterStartDate);
+        if (project.createdAt < start) return false;
+      }
+
+      if (filterEndDate) {
+        const end = new Date(filterEndDate);
+        end.setHours(23, 59, 59, 999);
+        if (project.createdAt > end) return false;
+      }
+
+      return true;
+    });
+  }, [projects, searchText, filterTags, filterStartDate, filterEndDate]);
+
+  // Calculate pagination
+  const pageCount = Math.ceil(filteredProjects.length / itemsPerPage);
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Change page safely
+  const goToPage = (page: number) => {
+    if (page < 1) page = 1;
+    else if (page > pageCount) page = pageCount;
+    setCurrentPage(page);
+  };
+
+  return (
+    <div className="p-5">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Projects</h1>
+        <Button onClick={openNewProjectSheet}>Create Project</Button>
+      </div>
+
+      {/* Stylish filter container */}
+      <div className="mb-6 p-4 border rounded-lg shadow-sm flex flex-wrap items-center gap-4">
+        <Input
+          type="search"
+          placeholder="Search by name or description..."
+          value={searchText}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            setCurrentPage(1); // Reset page on filter change
+          }}
+          className="max-w-xs"
+        />
+
+        <div className="flex items-center space-x-2 flex-wrap">
+          <span className="font-semibold mr-2">Filter Tags:</span>
+          {ALL_TAGS.map(({ label, color }) => (
+            <Button
+              key={label}
+              size="sm"
+              variant={filterTags.includes(label) ? "default" : "outline"}
+              onClick={() => {
+                toggleFilterTag(label);
+                setCurrentPage(1); // Reset page on filter change
+              }}
+              className={`text-${color}-600 border-${color}-600`}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <label htmlFor="start-date" className="font-semibold">
+            Start Date:
+          </label>
+          <Input
+            id="start-date"
+            type="date"
+            value={filterStartDate}
+            onChange={(e) => {
+              setFilterStartDate(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <label htmlFor="end-date" className="font-semibold">
+            End Date:
+          </label>
+          <Input
+            id="end-date"
+            type="date"
+            value={filterEndDate}
+            onChange={(e) => {
+              setFilterEndDate(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSearchText("");
+            setFilterTags([]);
+            setFilterStartDate("");
+            setFilterEndDate("");
+            setCurrentPage(1);
+          }}
+          className="ml-auto"
+        >
+          Clear Filters
+        </Button>
+      </div>
+
+      {/* Responsive table wrapper */}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Tags</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Time Tracked</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedProjects.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-4">
+                  No projects found matching the filters.
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedProjects.map((project) => (
+                <TableRow key={project._id}>
+                  <TableCell>{project.name}</TableCell>
+                  <TableCell>{project.description}</TableCell>
+                  <TableCell className="flex space-x-1">
+                    {project.tags.map((tag) => {
+                      const tagData = ALL_TAGS.find((t) => t.label === tag);
+                      return (
+                        <Badge
+                          key={tag}
+                          variant="outline"
+                          className={`text-${tagData?.color}-600 border-${tagData?.color}-600`}
+                        >
+                          {tag}
+                        </Badge>
+                      );
+                    })}
+                  </TableCell>
+                  <TableCell>${project.amount ?? 0}</TableCell>
+                  <TableCell>{formatTime(project.timeTrackedSeconds)}</TableCell>
+                  <TableCell>{project.createdAt.toLocaleDateString()}</TableCell>
+                  <TableCell className="space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditProjectSheet(project)}
+                      aria-label={`Edit ${project.name}`}
+                    >
+                      <Edit size={16} />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => confirmDeleteProject(project)}
+                      aria-label={`Delete ${project.name}`}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination controls */}
+      {pageCount > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-4 select-none">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </Button>
+
+          {[...Array(pageCount)].map((_, i) => {
+            const page = i + 1;
+            return (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => goToPage(page)}
+              >
+                {page}
+              </Button>
+            );
+          })}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === pageCount}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+
+      {/* Sheet for create/edit */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="max-w-md p-6" side="right">
+          <h2 className="text-xl font-semibold mb-4">
+            {editingProject ? "Edit Project" : "Create Project"}
+          </h2>
+
+          <div className="space-y-4">
+            <Input
+              placeholder="Project Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Textarea
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
+            <Input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              min={0}
+            />
+
+            <div>
+              <label className="block mb-1 font-medium">Tags</label>
+              <div className="flex space-x-2">
+                {ALL_TAGS.map(({ label, color }) => (
+                  <Button
+                    key={label}
+                    size="sm"
+                    variant={tags.includes(label) ? "default" : "outline"}
+                    onClick={() => toggleTag(label)}
+                    className={`text-${color}-600 border-${color}-600`}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button variant="outline" onClick={() => setSheetOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveProject}>
+                {editingProject ? "Update" : "Create"}
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            Are you sure you want to delete{" "}
+            <strong>{projectToDelete?.name}</strong>?
+          </div>
+          <DialogFooter className="flex justify-end space-x-2">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={handleDeleteConfirmed}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

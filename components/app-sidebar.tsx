@@ -59,7 +59,7 @@ const data = {
     },
     {
       title: "Projects",
-      url: "#",
+      url: "/admin/projects",
       icon: IconFolder,
     },
     {
