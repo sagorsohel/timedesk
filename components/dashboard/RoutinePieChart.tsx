@@ -31,13 +31,13 @@ function formatSeconds(seconds: number): string {
 }
 
 export default function RoutineBarChart({ routines }: Props) {
-    const data = routines.map((routine) => ({
-        name: routine.name,
+    const data = routines?.map((routine) => ({
+        name: routine?.name,
         completed: Math.max(
-            routine.originalDurationSeconds - routine.remainingSeconds,
+            routine?.originalDurationSeconds - routine?.remainingSeconds,
             0
         ),
-        remaining: routine.remainingSeconds,
+        remaining: routine?.remainingSeconds,
     }));
 
     return (
