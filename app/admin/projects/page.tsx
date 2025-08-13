@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useTransition, useActionState } from "react";
 import {
   Table,
   TableBody,
@@ -25,6 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trash2, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import DeleteDialog from "@/components/delete-dialog";
 
 type Project = {
   _id: string;
@@ -84,6 +85,7 @@ export default function ProjectsTableWithSheet() {
   const [amount, setAmount] = useState("");
   const [tags, setTags] = useState<string[]>([]);
 
+
   // FILTER states
   const [searchText, setSearchText] = useState("");
   const [filterTags, setFilterTags] = useState<string[]>([]);
@@ -97,6 +99,13 @@ export default function ProjectsTableWithSheet() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+
+  const handleSubmit = () => {
+    
+  };
+
+  const [error, submitAction, isPending] = useActionState(handleSubmit,null);
 
   function formatTime(seconds: number) {
     const h = Math.floor(seconds / 3600);
@@ -266,7 +275,7 @@ export default function ProjectsTableWithSheet() {
                 toggleFilterTag(label);
                 setCurrentPage(1); // Reset page on filter change
               }}
-              className={`text-${color}-600 border-${color}-600`}
+              className={` border-${color}-600`}
             >
               {label}
             </Button>
@@ -431,7 +440,7 @@ export default function ProjectsTableWithSheet() {
             {editingProject ? "Edit Project" : "Create Project"}
           </DialogTitle>
 
-          <div className="space-y-4">
+          <form className="space-y-4">
             <Input
               placeholder="Project Name"
               value={name}
@@ -460,7 +469,7 @@ export default function ProjectsTableWithSheet() {
                     size="sm"
                     variant={tags.includes(label) ? "default" : "outline"}
                     onClick={() => toggleTag(label)}
-                    className={`text-${color}-600 border-${color}-600`}
+                    className={` border-${color}-600`}
                   >
                     {label}
                   </Button>
@@ -476,30 +485,14 @@ export default function ProjectsTableWithSheet() {
                 {editingProject ? "Update" : "Create"}
               </Button>
             </div>
-          </div>
+          </form>
         </SheetContent>
       </Sheet>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Delete</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            Are you sure you want to delete{" "}
-            <strong>{projectToDelete?.name}</strong>?
-          </div>
-          <DialogFooter className="flex justify-end space-x-2">
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button variant="destructive" onClick={handleDeleteConfirmed}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+      <DeleteDialog itemName={projectToDelete?.name} open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={handleDeleteConfirmed} />
+      
     </div>
   );
 }
