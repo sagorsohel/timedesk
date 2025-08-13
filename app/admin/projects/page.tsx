@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import DeleteDialog from "@/components/delete-dialog";
 import { Trash2, Edit } from "lucide-react";
 import { createProjectApi, updateProjectApi } from "@/actions/projectActions";
+import { toast } from "sonner";
 
 type Project = {
     _id?: string;
@@ -136,8 +137,15 @@ export default function ProjectsTableWithSheet() {
                 );
             } else {
                 // Create new
-                const { project } = await createProjectApi(token, payload);
-                setProjects((prev) => [project, ...prev]);
+                const { project, success } = await createProjectApi(token, payload);
+                if (success) {
+                    setProjects((prev) => [project, ...prev]);
+                    toast.success('Project created successfully!')
+                }
+
+
+
+
             }
 
             setSheetOpen(false);
@@ -290,10 +298,10 @@ export default function ProjectsTableWithSheet() {
                         ) : (
                             paginatedProjects.map((project) => (
                                 <TableRow key={project._id}>
-                                    <TableCell>{project.name}</TableCell>
-                                    <TableCell>{project.description}</TableCell>
+                                    <TableCell>{project?.name}</TableCell>
+                                    <TableCell>{project?.description}</TableCell>
                                     <TableCell className="flex space-x-1">
-                                        {project.tags.map((tag) => {
+                                        {project?.tags?.map((tag) => {
                                             const tagData = ALL_TAGS.find((t) => t.label === tag);
                                             return (
                                                 <Badge
