@@ -427,9 +427,9 @@ export default function ProjectsTableWithSheet() {
       {/* Sheet for create/edit */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent className="max-w-md p-6" side="right">
-          <h2 className="text-xl font-semibold mb-4">
+          <DialogTitle className="text-xl font-semibold mb-4">
             {editingProject ? "Edit Project" : "Create Project"}
-          </h2>
+          </DialogTitle>
 
           <div className="space-y-4">
             <Input
