@@ -18,10 +18,12 @@ export async function getProjects(
     if (options?.search) params.search = options.search;
     if (options?.tags?.length) params.tags = options.tags.join(",");
 
-    const { data } = await api.get("/projects", {
+    const { data } = await api.get("/projects/get", {
       headers: { Authorization: `Bearer ${token}` },
       params,
     });
+
+  console.log(data)
 
     // Backend response: { success, message, data: { projects, pagination } }
     return {
