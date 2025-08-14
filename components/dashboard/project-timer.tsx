@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { startTrackingApi, getProjects, stopTrackingApi, getProjectHistoryApi } from "@/actions/projectActions";
 
 export default function ProjectTimer() {
-    const token = localStorage.getItem("token") as string;
+    const [token, setToken] = useState<string | null>(null);
+
+
     const [loading, setLoading] = useState(false);
     const [projects, setProjects] = useState<any[]>([]);
     const [selectedProject, setSelectedProject] = useState<string | null>(null);
@@ -17,9 +19,14 @@ export default function ProjectTimer() {
     const [startTime, setStartTime] = useState<number | null>(null);
     const [elapsed, setElapsed] = useState(0);
 
+
+    useEffect(() => {
+        setToken(localStorage.getItem("token"));
+    }, []);
+
     useEffect(() => {
         async function fetchProjects() {
-            const res = await getProjects(token);
+            const res = await getProjects(token as string);
             if (res.success) setProjects(res.projects);
         }
         fetchProjects();
@@ -38,7 +45,7 @@ export default function ProjectTimer() {
     async function handleStart() {
         if (!selectedProject) return alert("Select a project first");
         setLoading(true);
-        const res = await startTrackingApi(selectedProject, token);
+        const res = await startTrackingApi(selectedProject, token as string);
         setLoading(false);
         if (res.success) {
             setStartTime(Date.now());
@@ -50,7 +57,7 @@ export default function ProjectTimer() {
         if (!selectedProject) return alert("Select a project first");
         if (!title.trim()) return alert("Enter a title first");
         setLoading(true);
-        const res = await stopTrackingApi(selectedProject, title, token);
+        const res = await stopTrackingApi(selectedProject, title, token as string);
         setLoading(false);
         if (res.success) {
             setStartTime(null);
@@ -62,7 +69,7 @@ export default function ProjectTimer() {
 
     async function loadHistory() {
         if (!selectedProject) return alert("Select a project first");
-        const res = await getProjectHistoryApi(selectedProject, token);
+        const res = await getProjectHistoryApi(selectedProject, token as string);
         if (res.success) setHistory(res.history);
     }
 
