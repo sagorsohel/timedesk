@@ -23,7 +23,7 @@ export async function getProjects(
       params,
     });
 
-  console.log(data)
+
 
     // Backend response: { success, message, data: { projects, pagination } }
     return {
