@@ -95,3 +95,39 @@ export async function updateProjectApi(
     };
   }
 }
+
+
+
+export async function startTrackingApi(projectId: string, token: string) {
+    try {
+      const { data } = await api.post(`/projects/${projectId}/start`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return { success: true, project: data.data.project };
+    } catch (error: any) {
+      return { success: false, message: error.response?.data?.message || "Failed to start tracking" };
+    }
+  }
+  
+  export async function stopTrackingApi(projectId: string, title: string, token: string) {
+    try {
+      const { data } = await api.post(`/projects/${projectId}/stop`, { title }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return { success: true, project: data.data.project };
+    } catch (error: any) {
+      return { success: false, message: error.response?.data?.message || "Failed to stop tracking" };
+    }
+  }
+  
+  export async function getProjectHistoryApi(projectId: string, token: string, date?: string) {
+    try {
+      const { data } = await api.get(`/projects/${projectId}/history`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: date ? { date } : {}
+      });
+      return { success: true, history: data.data.history };
+    } catch (error: any) {
+      return { success: false, message: error.response?.data?.message || "Failed to get history" };
+    }
+  }

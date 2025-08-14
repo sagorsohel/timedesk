@@ -11,7 +11,7 @@ export default function Page() {
   return (
     <div className="flex flex-col sm:flex-row w-full p-4  justify-between">
       <div className="sm:w-1/2 w-full">
-        <RoutineChartPage/>
+        {/* <RoutineChartPage/> */}
       </div>
       <div className="flex justify-end ">
         <RoutineManager />
