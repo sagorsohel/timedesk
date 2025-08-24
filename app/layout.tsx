@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "TimeDesk - Your Digital Workspace",
   description: "Track time, manage projects, take notes, and organize your digital workspace with TimeDesk.",
-  generator: "v0.dev",
+  
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
